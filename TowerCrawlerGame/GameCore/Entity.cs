@@ -6,21 +6,21 @@ using System.Threading.Tasks;
 
 namespace GameCore
 {
-    internal class Entity
+    public abstract class Entity
     {
         public string Name { get; set; }
         public int CurrentHP { get; protected set; }
-        public int MaxHP { get; protected set}
+        public int MaxHP { get; protected set; }
 
-        public Entity(string Name, int MaxHp )
+        public Entity(string name, int maxHP )
         {
             Name = name;
-            MaxHp = maxHp;
-            CurrentHP = maxHp;
+            MaxHP = maxHP;
+            CurrentHP = maxHP;
         }
 
         //functions
-        public bool IsDead => CurrentHP <= 0
+        public bool IsDead => CurrentHP <= 0;
 
         public virtual void TakeDamage(int amount)
         {
@@ -29,7 +29,7 @@ namespace GameCore
         }
         public virtual void Heal(int amount)
         {
-            if (isdead) return;
+            if (IsDead) return;
             CurrentHP += amount;
             if(CurrentHP>MaxHP) CurrentHP = MaxHP;
         }
