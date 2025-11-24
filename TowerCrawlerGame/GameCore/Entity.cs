@@ -8,6 +8,8 @@ namespace GameCore
 {
     public abstract class Entity
     {
+        public int X {  get; set; }
+        public int Y { get; set; }
         public string Name { get; set; }
         public int CurrentHP { get; protected set; }
         public int MaxHP { get; protected set; }
