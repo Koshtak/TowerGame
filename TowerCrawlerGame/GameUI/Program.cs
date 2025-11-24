@@ -13,51 +13,71 @@ namespace GameUI
         {
             Map gameMap = new Map(20, 10);
             Player hero = new Player("Marlo", 100, 20, 50);
+            gameMap.PlaceEntity(hero, 5, 5);
 
-            if (gameMap.PlaceEntity(hero, 5, 5)) Console.WriteLine("oyuncu kondu");
-            else Console.WriteLine("konamadı");
+            Enemy goblin = new Enemy("Disheveled Goblin", 50, 5, 12);
+            gameMap.PlaceEntity(goblin, 8, 5);
 
+            string logMessage = "Kuleye hoş geldin...";
 
             bool isGameRunning = true;
             while (isGameRunning)
             {
                 Console.Clear();
                 DrawMap(gameMap, hero);
-                Console.WriteLine($"konum:{hero.X}{hero.Y}");
-                ConsoleKeyInfo keyInfo = Console.ReadKey(true);
 
+                Console.WriteLine("----------------------------------");
+                Console.WriteLine($"Durum: {logMessage}");
+                Console.WriteLine($"{hero.Name} Statlar -> Can: {hero.CurrentHP} | Gizlilik: {hero.StealthSkill}");
+                Console.WriteLine("----------------------------------");
+                Console.WriteLine($"konum:{hero.X}{hero.Y}");
+
+                ConsoleKeyInfo keyInfo = Console.ReadKey(true);
                 int dx = 0;
                 int dy = 0;
+
                 switch (keyInfo.Key)
                 {
-                    case ConsoleKey.UpArrow: dy = -1; break; // Yukarı (Y azalır)
-                    case ConsoleKey.DownArrow: dy = 1; break; // Aşağı (Y artar)
-                    case ConsoleKey.LeftArrow: dx = -1; break; // Sola (X azalır)
-                    case ConsoleKey.RightArrow: dx = 1; break; // Sağa (X artar)
+                    case ConsoleKey.UpArrow: dy = -1; break;
+                    case ConsoleKey.DownArrow: dy = 1; break;
+                    case ConsoleKey.LeftArrow: dx = -1; break;
+                    case ConsoleKey.RightArrow: dx = 1; break;
                     case ConsoleKey.Escape: isGameRunning = false; break;
                 }
 
-                // 3. Hareket Mantığını Çağır
                 if (dx != 0 || dy != 0)
                 {
-                    gameMap.MoveEntity(hero, dx, dy);
+                    int targetX = hero.X + dx;
+                    int targetY = hero.Y + dy;
+
+                    if (targetX >= 0 && targetY >= 0 && targetX < gameMap.Width && targetY < gameMap.Height)
+                    {
+                        Tile targetTile = gameMap.Grid[targetX, targetY];
+                        if (targetTile.Occupant is Enemy enemy)
+                        {
+                            if (hero.StealthSkill < enemy.DetectionSkill)
+                            {
+                                logMessage = $"{enemy.Name} seni tespit etti! (düşman tespit seviyesi: {enemy.DetectionSkill} > gizlilik seviyen: {hero.StealthSkill})";
+                            }
+                            else
+                            {
+                                logMessage = $"{enemy.Name} seni görmedi.";
+                            }
+                        }
+                        else if (targetTile.IsWall)
+                        {
+                            logMessage = "Duvar.";
+                        }
+                        else
+                        {
+                            gameMap.MoveEntity(hero, dx, dy);
+                            logMessage = "İlerliyorsun...";
+                        }
+
+
+                    }
                 }
             }
-
-
-
-            /*
-                Enemy Goblin = new Enemy("japanese goblin", 100, 10, 20);
-            Console.WriteLine($"\nDüşman Gördün: {Goblin.Name}");
-
-
-            bool kactikMi = hero.TryFlee(Goblin);
-            if (kactikMi)
-                Console.WriteLine("Kaçtın!");
-            else
-                Console.WriteLine("Yakalandın!");
-
-            */
             Console.ReadLine();
         }
         static void DrawMap(Map map, Player hero)
@@ -72,6 +92,11 @@ namespace GameUI
                     {
                         Console.ForegroundColor = ConsoleColor.DarkCyan;
                         Console.Write("@");
+                    }
+                    else if (t.Occupant != null)
+                    {
+                        Console.ForegroundColor= ConsoleColor.DarkRed;
+                        Console.Write("X");
                     }
                     else if (t.IsWall)
                     {

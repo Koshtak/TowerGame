@@ -8,6 +8,7 @@ namespace GameCore
 {
     public class Enemy : Entity
     {
+        //enemy stats
         public int SpeedSkill { get; set; }
         public int DetectionSkill { get; set; }
         public bool IsEdible { get; set; }

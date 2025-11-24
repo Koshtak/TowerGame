@@ -12,6 +12,7 @@ namespace GameCore
         public Tile[,] Grid {  get; private set; }
         public int Width { get; }
         public int Height { get; }
+
         public Map(int width, int height)
         {
             Width = width;

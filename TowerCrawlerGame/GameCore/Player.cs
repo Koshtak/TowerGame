@@ -13,6 +13,7 @@ namespace GameCore
         public int SpeedSkill { get; set; }
         public int Hunger { get; set; }
         public int MaxHunger { get; set; } = 100;
+
         public Player(string name, int maxHP, int startStealth, int startSpeed): base(name, maxHP) //hp 0-100, stealth 0-100, speed 0-100
         {
             StealthSkill = startStealth;
