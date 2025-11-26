@@ -12,13 +12,22 @@ namespace GameUI
         static void Main(string[] args)
         {
             Map gameMap = new Map(20, 10);
-            Player hero = new Player("Marlo", 100, 20, 50);
+            Player hero = new Player("Marlo", 100, 10, 10);
             gameMap.PlaceEntity(hero, 5, 5);
+            Weapon ironSword = new Weapon("Demir Kılıç");
 
-            Enemy goblin = new Enemy("Disheveled Goblin", 50, 5, 12);
+            CombatMove quickSlash = new CombatMove("quick thinker", 15, (attacker, target) => {/* effects*/});
+            CombatMove heavyHit = new CombatMove("Heavy and clear", 35, (attacker, target) => { attacker.SpeedSkill -= 10; });
+
+            ironSword.AddMove(quickSlash);
+            ironSword.AddMove(heavyHit);
+
+            hero.EquippedWeapon= ironSword;
+
+            Enemy goblin = new Enemy("Disheveled Goblin", 50, 15, 12);
             gameMap.PlaceEntity(goblin, 8, 5);
 
-            string logMessage = "Kuleye hoş geldin...";
+            string logMessage = "Kuleye Hoş Geldin!";
 
             bool isGameRunning = true;
             while (isGameRunning)
@@ -38,10 +47,10 @@ namespace GameUI
 
                 switch (keyInfo.Key)
                 {
-                    case ConsoleKey.UpArrow: dy = -1; break;
-                    case ConsoleKey.DownArrow: dy = 1; break;
-                    case ConsoleKey.LeftArrow: dx = -1; break;
-                    case ConsoleKey.RightArrow: dx = 1; break;
+                    case ConsoleKey.W: dy = -1; break;
+                    case ConsoleKey.S: dy = 1; break;
+                    case ConsoleKey.A: dx = -1; break;
+                    case ConsoleKey.D: dx = 1; break;
                     case ConsoleKey.Escape: isGameRunning = false; break;
                 }
 
@@ -55,14 +64,35 @@ namespace GameUI
                         Tile targetTile = gameMap.Grid[targetX, targetY];
                         if (targetTile.Occupant is Enemy enemy)
                         {
-                            if (hero.StealthSkill < enemy.DetectionSkill)
+                            Console.Clear();
+                            Console.WriteLine($"Düşman Canı: {enemy.CurrentHP} | Senin Gizlilik: {hero.StealthSkill}");
+                            Console.WriteLine("Saldırı Seç:");
+
+                            for (int i = 0;i<hero.EquippedWeapon.Moves.Count ;i++)
                             {
-                                logMessage = $"{enemy.Name} seni tespit etti! (düşman tespit seviyesi: {enemy.DetectionSkill} > gizlilik seviyen: {hero.StealthSkill})";
+                                var move = hero.EquippedWeapon.Moves[i];
+                                Console.WriteLine($"{i + 1}.{move.Name} (hasar{move.Damage})");
                             }
-                            else
+
+                            Console.Write("Seçimini yap (Numara gir): ");
+                            char secim = Console.ReadKey().KeyChar;
+                            int index = (int)char.GetNumericValue(secim) - 1;
+
+                            if (index >= 0 && index < hero.EquippedWeapon.Moves.Count)
                             {
-                                logMessage = $"{enemy.Name} seni görmedi.";
+                                CombatMove selectedMove = hero.EquippedWeapon.Moves[index];
+                                enemy.TakeDamage(selectedMove.Damage);
+                                selectedMove.OnExecute?.Invoke(hero, enemy);
+                                logMessage = $"{selectedMove.Name} kullandın! Düşmana {selectedMove.Damage} hasar verdin.";
+                                if (enemy.IsDead)
+                                {
+                                    logMessage += $"{enemy.Name}öldü!";
+                                    gameMap.Grid[targetX, targetY].Occupant = null;
+                                }
                             }
+                                                    
+
+                            
                         }
                         else if (targetTile.IsWall)
                         {
