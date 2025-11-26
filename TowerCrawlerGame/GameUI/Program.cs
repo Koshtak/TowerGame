@@ -17,7 +17,7 @@ namespace GameUI
             Weapon ironSword = new Weapon("Demir Kılıç");
 
             CombatMove quickSlash = new CombatMove("quick thinker", 15, (attacker, target) => {/* effects*/});
-            CombatMove heavyHit = new CombatMove("Heavy and clear", 35, (attacker, target) => { attacker.SpeedSkill -= 10; });
+            CombatMove heavyHit = new CombatMove("Heavy and clear", 35, (attacker, target) => { attacker.SpeedPenalty -= 10; });
 
             ironSword.AddMove(quickSlash);
             ironSword.AddMove(heavyHit);
@@ -25,10 +25,12 @@ namespace GameUI
             hero.EquippedWeapon= ironSword;
 
             Enemy goblin = new Enemy("Disheveled Goblin", 50, 15, 12);
+            
+            Food goblinMeat = new Food("Goblin meat", 2, 2, (p) => { p.StealthSkill -= 2; });
+            goblin.SetLoot(goblinMeat);
             gameMap.PlaceEntity(goblin, 8, 5);
 
             string logMessage = "Kuleye Hoş Geldin!";
-
             bool isGameRunning = true;
             while (isGameRunning)
             {
@@ -40,6 +42,7 @@ namespace GameUI
                 Console.WriteLine($"{hero.Name} Statlar -> Can: {hero.CurrentHP} | Gizlilik: {hero.StealthSkill}");
                 Console.WriteLine("----------------------------------");
                 Console.WriteLine($"konum:{hero.X}{hero.Y}");
+                Console.WriteLine("Hareket: Ok Tuşları | Envanter: I | Çıkış: ESC");
 
                 ConsoleKeyInfo keyInfo = Console.ReadKey(true);
                 int dx = 0;
@@ -51,6 +54,7 @@ namespace GameUI
                     case ConsoleKey.S: dy = 1; break;
                     case ConsoleKey.A: dx = -1; break;
                     case ConsoleKey.D: dx = 1; break;
+                    case ConsoleKey.I: OpenInventory(hero); break;
                     case ConsoleKey.Escape: isGameRunning = false; break;
                 }
 
@@ -86,8 +90,21 @@ namespace GameUI
                                 logMessage = $"{selectedMove.Name} kullandın! Düşmana {selectedMove.Damage} hasar verdin.";
                                 if (enemy.IsDead)
                                 {
-                                    logMessage += $"{enemy.Name}öldü!";
+                                    logMessage += $"{enemy.Name} öldü!";
                                     gameMap.Grid[targetX, targetY].Occupant = null;
+                                    if(enemy.SetLoot!=null)
+                                    {
+                                        Console.WriteLine($"\n {enemy.Name} yere eşya düşürdü:{enemy.Loot.Name}");
+                                        Console.WriteLine("Almak istiyor musun? E'ye bas! ");
+                                        var lootChoice = Console.ReadKey().Key;
+                                        if (lootChoice==ConsoleKey.E)
+                                        {
+                                            if (hero.AddToInventory(enemy.Loot)) logMessage += $" | {enemy.Loot.Name} çantaya eklendi.";
+                                            else logMessage += " | Çanta dolu! Eşya yerde kaldı.";
+
+                                        }
+                                        else logMessage += "| eşyayı almadın.";
+                                    }
                                 }
                             }
                                                     
@@ -142,6 +159,10 @@ namespace GameUI
                 Console.WriteLine();
             }
             Console.ResetColor();
+        }
+        static void OpenInventory(Player hero)
+        {
+
         }
     }
 }

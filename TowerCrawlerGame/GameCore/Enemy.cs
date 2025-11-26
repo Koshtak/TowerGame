@@ -12,13 +12,16 @@ namespace GameCore
         public int SpeedSkill { get; set; }
         public int DetectionSkill { get; set; }
         public bool IsEdible { get; set; }
-
+        public Item Loot {  get; set; }
         public Enemy(String name, int maxHP, int speed, int detection ) : base( name, maxHP)
         {
             SpeedSkill = speed;
             DetectionSkill = detection;
             IsEdible = false;
-
+        }
+        public void SetLoot(Item item)
+        {
+            Loot = item;
         }
     }
 }
