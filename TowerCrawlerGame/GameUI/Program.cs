@@ -162,7 +162,6 @@ namespace GameUI
         }
         static void OpenInventory(Player hero)
         {
-
         }
     }
 }

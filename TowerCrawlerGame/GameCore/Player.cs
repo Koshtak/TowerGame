@@ -61,7 +61,7 @@ namespace GameCore
         {
             if (Inventory.Contains(food))
             {
-                Heal(food.restoreAmount);
+                Heal(food.RestoreAmount);
                 food.OnConsume?.Invoke(this);
                 Inventory.Remove(food);
                  

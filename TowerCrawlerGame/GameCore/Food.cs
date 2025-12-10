@@ -8,11 +8,11 @@ namespace GameCore
 {
     public class Food : Item
     {
-        public int restoreAmount {  get; set; }
+        public int RestoreAmount {  get; set; }
         public Action<Player> OnConsume { get; set; }
         public Food(string name, int weight, int restore, Action<Player> effect = null): base(name, weight)
         {
-            restoreAmount = restore;
+            RestoreAmount = restore;
             OnConsume = effect;
 
 
