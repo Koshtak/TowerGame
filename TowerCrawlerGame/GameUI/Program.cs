@@ -162,6 +162,53 @@ namespace GameUI
         }
         static void OpenInventory(Player hero)
         {
+            Console.Clear();
+            Console.WriteLine("---ENVANTER---");
+            Console.WriteLine($"Kapasite:{hero.Inventory.Count}/{hero.MaxInventorySize}");
+            Console.WriteLine($"Güncel Hızın:{hero.SpeedSkill}");
+            Console.WriteLine("--------------");
+
+            if (hero.Inventory.Count == 0)
+            {
+                Console.WriteLine("Çantan Boş");
+            }
+            else
+            {
+                for (int x = 0; x < hero.Inventory.Count; x++)
+                {
+                    Item item =hero.Inventory[x];
+                    Console.Write($"{x+1}.{item.Name}(Ağırlık:{item.Weight})");
+
+                    if(item is Food food)
+                        Console.Write($"[Yenebilir-Can: +{ food.RestoreAmount}]");
+
+                    Console.WriteLine();
+                }
+            }
+            Console.WriteLine("\nyemek için sayı gir. çıkmak için ESC");
+            var key= Console.ReadKey(true);
+
+
+            if (char.IsDigit(key.KeyChar)) 
+            {
+                int index = (int)char.GetNumericValue(key.KeyChar)-1;
+                if(index>=0&&index<hero.Inventory.Count)
+                {
+                    Item selected=hero.Inventory[index];
+                    if(selected is Food foodToEat)
+                    {
+                        hero.EatItem(foodToEat);
+                        Console.WriteLine($"{foodToEat.Name} yendi.+{foodToEat.RestoreAmount}");
+                        Console.ReadKey();
+                    }
+                    else
+                    {
+                        Console.WriteLine("yenmez");
+                        Console.ReadKey();
+                    }
+                }
+
+            }
         }
     }
 }

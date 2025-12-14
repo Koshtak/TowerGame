@@ -10,8 +10,8 @@ namespace GameCore
     {
         //stats
         private int _baseSpeed;
+        public int SpeedPenalty { get; set; }
 
-        
         public int SpeedSkill 
         {
             get
@@ -22,7 +22,7 @@ namespace GameCore
             }
             
         }
-        public int SpeedPenalty { get; set; }
+        
         public int StealthSkill { get; set; }
         public int Hunger { get; set; }
         public int MaxHunger { get; set; } = 100;
