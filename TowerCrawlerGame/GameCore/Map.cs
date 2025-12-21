@@ -19,6 +19,7 @@ namespace GameCore
             Height = height;
             Grid = new Tile[width, height];
             GenerateEmptyMap();
+            GenerateStairs();
 
         }
         public void GenerateEmptyMap()
@@ -29,6 +30,26 @@ namespace GameCore
                 {
                     bool isBorder = (x == 0 || x == Width - 1 || y == 0 || y == Height - 1);
                     Grid[x, y] = new Tile(x, y, isBorder);
+                }
+            }
+        }
+
+        public void GenerateStairs()
+        {
+            //tamamen random olması iyi değil.
+            Random rnd = new Random();
+            bool placed = false;
+            while (!placed)
+            {
+                int ry = rnd.Next(1, Height-1);
+                int rx = rnd.Next(1, Width-1);
+                
+                Tile t = Grid[rx, ry];
+
+                if (!t.IsWall&&t.Occupant==null)
+                {
+                    t.IsStairs= true;
+                    placed = true;
                 }
             }
         }

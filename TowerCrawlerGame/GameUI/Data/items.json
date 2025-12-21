@@ -1,0 +1,26 @@
+﻿[
+  {
+    "id": "potion_small",
+    "name": "Küçük İksir",
+    "type": "Food",
+    "weight": 1,
+    "value": 20,
+    "description": "Az miktarda can yeniler."
+  },
+  {
+    "id": "meat_goblin",
+    "name": "Goblin Eti",
+    "type": "Food",
+    "weight": 2,
+    "value": 10,
+    "description": "Tadı berbat ama doyurur."
+  },
+  {
+    "id": "sword_iron",
+    "name": "Demir Kılıç",
+    "type": "Weapon",
+    "weight": 3,
+    "damage": 15,
+    "moves": [ "Slash", "Thrust" ]
+  }
+]

@@ -11,24 +11,27 @@ namespace GameUI
     {
         static void Main(string[] args)
         {
-            Map gameMap = new Map(20, 10);
+            int currentFloor = 1;
+            
             Player hero = new Player("Marlo", 100, 10, 10);
-            gameMap.PlaceEntity(hero, 5, 5);
+
+            Map gameMap = SetupLevel(currentFloor, hero);            
             Weapon ironSword = new Weapon("Demir Kılıç");
 
             CombatMove quickSlash = new CombatMove("quick thinker", 15, (attacker, target) => {/* effects*/});
-            CombatMove heavyHit = new CombatMove("Heavy and clear", 35, (attacker, target) => { attacker.SpeedPenalty -= 10; });
+            CombatMove heavyHit = new CombatMove("Heavy and clear", 35, (attacker, target) => { attacker.SpeedPenalty += 10; });
 
             ironSword.AddMove(quickSlash);
             ironSword.AddMove(heavyHit);
 
-            hero.EquippedWeapon= ironSword;
+            hero.EquippedWeapon = ironSword;
 
             Enemy goblin = new Enemy("Disheveled Goblin", 50, 15, 12);
             
             Food goblinMeat = new Food("Goblin meat", 2, 2, (p) => { p.StealthSkill -= 2; });
+
             goblin.SetLoot(goblinMeat);
-            gameMap.PlaceEntity(goblin, 8, 5);
+           // gameMap.PlaceEntity(goblin, 8, 5);
 
             string logMessage = "Kuleye Hoş Geldin!";
             bool isGameRunning = true;
@@ -124,8 +127,60 @@ namespace GameUI
 
                     }
                 }
+                Tile currentTile = gameMap.Grid[hero.X, hero.Y];
+                
+                if(currentTile.IsStairs)
+                {
+                    Console.Clear();
+                    Console.WriteLine("üst kat");
+                    Console.WriteLine("1. Yukarı Çık (Devam)");
+                    Console.WriteLine("2. Alt Kata Dön");
+                    Console.WriteLine("3. Burada Kal");
+                    Console.WriteLine("4. Oyunu Kaydet");
+
+                    var choice = Console.ReadKey().Key;
+
+                    if (choice == ConsoleKey.D1)
+                    {
+                        currentFloor++;
+                        gameMap = SetupLevel(currentFloor, hero);
+                        logMessage = $"{currentFloor}. Kat";
+                    }
+                    else if (choice == ConsoleKey.D2)
+                    {
+                        currentFloor--;
+                        //eski katı yükle.
+                    }
+                    else if (choice == ConsoleKey.D3)
+                    {
+                        Console.WriteLine("\nkat değişmedi");
+                    }
+                    else if (choice == ConsoleKey.D2)
+                    {
+                        Console.WriteLine("\nBase'e döndün'");
+                    }
+                }
             }
             Console.ReadLine();
+        }
+        static Map SetupLevel(int floorLevel, Player hero)
+        {
+            Map newMap = new Map(20, 10);
+            newMap.PlaceEntity(hero, 1, 1);
+
+            //enemy statları oyuncunun statlarına göre ayarlanacak daha sonra.
+            int enemyHP = 40 + (floorLevel * 10);
+            int enemyDmg = 5 + (floorLevel * 2);
+
+            Enemy floorEnemy = new Enemy($"{floorLevel} düşmanı", enemyHP, 5, 10);
+            Food goblinMeat = new Food("Goblin meat", 2, 2, (p) => { p.StealthSkill -= 2; });
+
+            floorEnemy.SetLoot(goblinMeat);
+            // Lootlar başka şekilde ayarlanacak.
+            /* Food loot = new Food("Garip Et", 2, 10 * floorLevel);
+             floorEnemy.SetLoot(loot);*/
+            newMap.PlaceEntity(floorEnemy, 10, 5);
+            return newMap;
         }
         static void DrawMap(Map map, Player hero)
         {
@@ -149,6 +204,11 @@ namespace GameUI
                     {
                         Console.ForegroundColor = ConsoleColor.Gray;
                         Console.Write("#");
+                    }
+                    else if(t.IsStairs)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Cyan;
+                        Console.Write("H");
                     }
                     else
                     {
@@ -210,5 +270,6 @@ namespace GameUI
 
             }
         }
+        
     }
 }

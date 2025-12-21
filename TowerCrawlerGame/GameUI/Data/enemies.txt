@@ -1,0 +1,18 @@
+﻿[
+  {
+    "id": "goblin_scout",
+    "name": "Goblin Gözcü",
+    "hp": 30,
+    "speed": 12,
+    "detection": 15,
+    "lootId": "meat_goblin"
+  },
+  {
+    "id": "orc_warrior",
+    "name": "Ork Savaşçısı",
+    "hp": 80,
+    "speed": 5,
+    "detection": 8,
+    "lootId": "sword_iron"
+  }
+]

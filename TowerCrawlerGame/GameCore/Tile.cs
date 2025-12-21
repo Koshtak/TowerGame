@@ -18,8 +18,10 @@ namespace GameCore
             Y = y;
             IsWall = isWall;
             Occupant = null;
+            IsStairs = false;
         }
         public bool IsWalkable => !IsWall && Occupant == null;
+        public bool IsStairs { get; set; }
         public bool HasObstacle => IsWall || Occupant != null;
 
     }

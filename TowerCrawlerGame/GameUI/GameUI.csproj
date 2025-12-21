@@ -11,4 +11,13 @@
     <ProjectReference Include="..\GameCore\GameCore.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Data\enemies.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\items.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
