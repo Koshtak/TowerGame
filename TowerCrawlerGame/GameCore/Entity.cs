@@ -35,8 +35,12 @@ namespace GameCore
             CurrentHP += amount;
             if(CurrentHP>MaxHP) CurrentHP = MaxHP;
         }
-    
-    
-    
+        public void BoostHealth(int amount)
+        {
+            MaxHP += amount;
+            CurrentHP += amount; 
+        }
+
+
     }
 }

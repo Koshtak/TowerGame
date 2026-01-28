@@ -9,6 +9,7 @@ namespace GameCore
 {
     public class Map
     {
+        private Random _rnd = new Random();
         public Tile[,] Grid {  get; private set; }
         public int Width { get; }
         public int Height { get; }
@@ -112,5 +113,33 @@ namespace GameCore
         }
 
         */
+
+        public bool PlaceEntityRandomly(Entity entity)
+        {
+            int attempts = 0;
+            bool placed = false;
+
+            while (!placed && attempts < 100)
+            {
+                int rx = _rnd.Next(1, Width - 1);
+                int ry = _rnd.Next(1, Height - 1);
+
+                Tile candidateTile = Grid[rx, ry];
+
+               
+                if (!candidateTile.IsWall && candidateTile.Occupant == null && !candidateTile.IsStairs)
+                {
+                    candidateTile.Occupant = entity;
+                    entity.X = rx;
+                    entity.Y = ry;
+                    placed = true;
+                    return true;
+                }
+
+                attempts++;
+            }
+            Console.WriteLine($"UYARI: {entity.Name} için boş yer bulunamadı!");
+            return false;
+        }
     }
 }

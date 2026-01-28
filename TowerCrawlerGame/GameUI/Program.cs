@@ -11,31 +11,98 @@ namespace GameUI
     {
         static void Main(string[] args)
         {
-            int currentFloor = 1;
             
+            // Veri Yükleme
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            string itemsPath = Path.Combine(baseDir, "Data", "items.json");
+            string enemiesPath = Path.Combine(baseDir, "Data", "enemies.json");
+
+            Console.WriteLine($"Veri yolu kontrol ediliyor: {baseDir}");
+
+            ObjectFactory.LoadData(itemsPath, enemiesPath);
+                
+            SaveManager.LoadGame();
+            bool appRunning = true;
+            while (appRunning)
+            {
+                if (!SaveManager.CurrentState.IsRealityEstablished)
+                {
+                    // ---(TUTORIAL / PERMADEATH) ---
+                    Console.Clear();
+                    Console.WriteLine("        ");
+                    Console.WriteLine("Başlamak için bir tuşa bas...");
+                    Console.ReadKey();
+
+                    // İlk karakterle başlat
+                    bool success = StartRun("toyo", isGenesisRun: true);
+
+                    if (success)
+                    {
+                        Console.WriteLine("Yeni yola ulaştın.");
+                        SaveManager.CurrentState.IsRealityEstablished = true;
+                        SaveManager.SaveGame();
+                    }
+                    else
+                    {
+                        Console.WriteLine("Yeni yolu bulamadın");
+                        Console.WriteLine("TÜM İLERLEME SİLİNDİ.");
+                        SaveManager.WipeReality();
+                        Console.ReadKey();
+                    }
+                }
+                else
+                {
+                    // ---BASE HUB (NORMAL OYUN) ---
+                    Console.Clear();
+                    Console.WriteLine("=== BASE: HAFIZA KRİSTALİ ===");
+                    Console.WriteLine($"Hafıza Doluluğu: {SaveManager.CurrentState.MemoryFragments}/{SaveManager.CurrentState.CrystalCapacity}");
+                    Console.WriteLine("1. Kuleye Gir");
+                    Console.WriteLine("2. Karakter Seç");
+                    Console.WriteLine("3. Kristal Yönetimi");
+                    Console.WriteLine("ESC. Çıkış");
+
+                    var key = Console.ReadKey(true).Key;
+                    if (key == ConsoleKey.D1)
+                    {
+                        // Normal Run
+                        bool alive = StartRun("toyo", isGenesisRun: false);
+                        if (!alive)
+                        {
+                            Console.WriteLine("Karakter öldü. Anıları kulenin içinde yankılanıyor.");
+                        }
+                    }
+                    else if (key == ConsoleKey.Escape)
+                    {
+                        appRunning = false;
+                    }
+                }
+            }
+        }
+
+        //Oyun Başlatma
+        static bool StartRun(string characterId, bool isGenesisRun)
+        {
+            int currentFloor = 1;
             Player hero = new Player("Marlo", 100, 10, 10);
 
-            Map gameMap = SetupLevel(currentFloor, hero);            
+            Map gameMap = SetupLevel(currentFloor, hero);
+            int targetFloor = isGenesisRun ? 3 : 99;
+            // Silah Ayarları
             Weapon ironSword = new Weapon("Demir Kılıç");
-
-            CombatMove quickSlash = new CombatMove("quick thinker", 15, (attacker, target) => {/* effects*/});
-            CombatMove heavyHit = new CombatMove("Heavy and clear", 35, (attacker, target) => { attacker.SpeedPenalty += 10; });
+            CombatMove quickSlash = new CombatMove("Hızlı Kesik", 15, (attacker, target) => { });
+            CombatMove heavyHit = new CombatMove("Ağır Darbe", 35, (attacker, target) => { attacker.SpeedPenalty += 10; });
 
             ironSword.AddMove(quickSlash);
             ironSword.AddMove(heavyHit);
-
             hero.EquippedWeapon = ironSword;
-
-            Enemy goblin = new Enemy("Disheveled Goblin", 50, 15, 12);
-            
-            Food goblinMeat = new Food("Goblin meat", 2, 2, (p) => { p.StealthSkill -= 2; });
-
-            goblin.SetLoot(goblinMeat);
-           // gameMap.PlaceEntity(goblin, 8, 5);
 
             string logMessage = "Kuleye Hoş Geldin!";
             bool isGameRunning = true;
+
+
+            // OYUN DÖNGÜSÜ
             while (isGameRunning)
+
             {
                 Console.Clear();
                 DrawMap(gameMap, hero);
@@ -44,12 +111,11 @@ namespace GameUI
                 Console.WriteLine($"Durum: {logMessage}");
                 Console.WriteLine($"{hero.Name} Statlar -> Can: {hero.CurrentHP} | Gizlilik: {hero.StealthSkill}");
                 Console.WriteLine("----------------------------------");
-                Console.WriteLine($"konum:{hero.X}{hero.Y}");
-                Console.WriteLine("Hareket: Ok Tuşları | Envanter: I | Çıkış: ESC");
+                Console.WriteLine($"Konum: {hero.X},{hero.Y}");
+                Console.WriteLine("Hareket: W/A/S/D | Envanter: I | Çıkış: ESC");
 
                 ConsoleKeyInfo keyInfo = Console.ReadKey(true);
-                int dx = 0;
-                int dy = 0;
+                int dx = 0; int dy = 0;
 
                 switch (keyInfo.Key)
                 {
@@ -60,6 +126,7 @@ namespace GameUI
                     case ConsoleKey.I: OpenInventory(hero); break;
                     case ConsoleKey.Escape: isGameRunning = false; break;
                 }
+
 
                 if (dx != 0 || dy != 0)
                 {
@@ -75,7 +142,7 @@ namespace GameUI
                             Console.WriteLine($"Düşman Canı: {enemy.CurrentHP} | Senin Gizlilik: {hero.StealthSkill}");
                             Console.WriteLine("Saldırı Seç:");
 
-                            for (int i = 0;i<hero.EquippedWeapon.Moves.Count ;i++)
+                            for (int i = 0; i < hero.EquippedWeapon.Moves.Count; i++)
                             {
                                 var move = hero.EquippedWeapon.Moves[i];
                                 Console.WriteLine($"{i + 1}.{move.Name} (hasar{move.Damage})");
@@ -95,12 +162,12 @@ namespace GameUI
                                 {
                                     logMessage += $"{enemy.Name} öldü!";
                                     gameMap.Grid[targetX, targetY].Occupant = null;
-                                    if(enemy.SetLoot!=null)
+                                    if (enemy.Loot != null)
                                     {
                                         Console.WriteLine($"\n {enemy.Name} yere eşya düşürdü:{enemy.Loot.Name}");
                                         Console.WriteLine("Almak istiyor musun? E'ye bas! ");
                                         var lootChoice = Console.ReadKey().Key;
-                                        if (lootChoice==ConsoleKey.E)
+                                        if (lootChoice == ConsoleKey.E)
                                         {
                                             if (hero.AddToInventory(enemy.Loot)) logMessage += $" | {enemy.Loot.Name} çantaya eklendi.";
                                             else logMessage += " | Çanta dolu! Eşya yerde kaldı.";
@@ -110,9 +177,9 @@ namespace GameUI
                                     }
                                 }
                             }
-                                                    
 
-                            
+
+
                         }
                         else if (targetTile.IsWall)
                         {
@@ -127,9 +194,15 @@ namespace GameUI
 
                     }
                 }
+
+                if (hero.IsDead)
+                {
+                    return false;
+                }
+
                 Tile currentTile = gameMap.Grid[hero.X, hero.Y];
-                
-                if(currentTile.IsStairs)
+
+                if (currentTile.IsStairs)
                 {
                     Console.Clear();
                     Console.WriteLine("üst kat");
@@ -139,6 +212,7 @@ namespace GameUI
                     Console.WriteLine("4. Oyunu Kaydet");
 
                     var choice = Console.ReadKey().Key;
+
 
                     if (choice == ConsoleKey.D1)
                     {
@@ -159,27 +233,60 @@ namespace GameUI
                     {
                         Console.WriteLine("\nBase'e döndün'");
                     }
+                    if (isGenesisRun && currentFloor >= targetFloor)
+                    {
+                        return true;
+                    }
                 }
             }
-            Console.ReadLine();
+        return false;
         }
         static Map SetupLevel(int floorLevel, Player hero)
         {
             Map newMap = new Map(20, 10);
-            newMap.PlaceEntity(hero, 1, 1);
+            newMap.PlaceEntityRandomly(hero);
 
-            //enemy statları oyuncunun statlarına göre ayarlanacak daha sonra.
-            int enemyHP = 40 + (floorLevel * 10);
-            int enemyDmg = 5 + (floorLevel * 2);
+            int enemyCount = floorLevel;
+            if (enemyCount > 5) enemyCount = 5;
 
-            Enemy floorEnemy = new Enemy($"{floorLevel} düşmanı", enemyHP, 5, 10);
-            Food goblinMeat = new Food("Goblin meat", 2, 2, (p) => { p.StealthSkill -= 2; });
+            Console.WriteLine($"--- Kat {floorLevel} Hazırlanıyor: {enemyCount} Düşman Eklenecek ---");
 
-            floorEnemy.SetLoot(goblinMeat);
-            // Lootlar başka şekilde ayarlanacak.
-            /* Food loot = new Food("Garip Et", 2, 10 * floorLevel);
-             floorEnemy.SetLoot(loot);*/
-            newMap.PlaceEntity(floorEnemy, 10, 5);
+            for (int i = 0; i < enemyCount; i++)
+            {
+                string enemyId = "goblin_scout";
+                if (floorLevel >= 3 && new Random().Next(0, 2) == 0)
+                {
+                    enemyId = "orc_warrior";
+                }
+
+                // Düşmanı yarat
+                Enemy enemy = ObjectFactory.CreateEnemy(enemyId);
+
+                // --- HATA TESPİT BLOĞU ---
+                if (enemy == null)
+                {
+                    // EĞER BU YAZIYI GÖRÜYORSAN: JSON dosyasındaki "id" ile buradaki "enemyId" tutmuyor demektir.
+                    Console.BackgroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"!!! HATA: '{enemyId}' ID'li düşman üretilemedi! JSON dosyasını kontrol et.");
+                    Console.ResetColor();
+                }
+                else
+                {
+                    enemy.BoostHealth(floorLevel * 5);
+                    enemy.Name += $" {i + 1}";
+
+                    bool basari = newMap.PlaceEntityRandomly(enemy);
+
+                    if (basari)
+                    {
+                        Console.WriteLine($"-> {enemy.Name} haritaya yerleşti ({enemy.X},{enemy.Y}).");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"-> {enemy.Name} için BOŞ YER BULUNAMADI!");
+                    }
+                }
+            }
             return newMap;
         }
         static void DrawMap(Map map, Player hero)
@@ -197,7 +304,7 @@ namespace GameUI
                     }
                     else if (t.Occupant != null)
                     {
-                        Console.ForegroundColor= ConsoleColor.DarkRed;
+                        Console.ForegroundColor= ConsoleColor.Red;
                         Console.Write("X");
                     }
                     else if (t.IsWall)

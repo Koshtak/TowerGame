@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace GameCore
 {
-    public class Weapon
+    public class Weapon : Item
     {
         string Name { get; set; }
         public List<CombatMove> Moves { get; set; }
-        public Weapon(string name)
+        public Weapon(string name, int weight = 3) : base(name, weight)
         {
             Name = name;
             Moves = new List<CombatMove>();

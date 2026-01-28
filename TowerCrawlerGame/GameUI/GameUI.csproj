@@ -12,8 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Data\enemies.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <None Update="Data\enemies.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Data\items.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
