@@ -15,7 +15,7 @@ namespace GameCore
         public Action<Player,Enemy> OnExecute { get; set; }
         public CombatMove(string name, int damage,Action<Player,Enemy> effect=null)
         {
-            Name = Name;
+            Name = name;
             Damage = damage;
             OnExecute = effect;
         }

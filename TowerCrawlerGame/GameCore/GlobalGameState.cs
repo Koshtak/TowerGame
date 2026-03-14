@@ -26,7 +26,7 @@ namespace GameCore
         public int FloorLevel { get; set; }
         public int X { get; set; }
         public int Y { get; set; }
-        public int EchoCharName { get; set; }
+        public string EchoCharName { get; set; }
         public List<ItemData> DroppedItems { get; set; }    
 
     }

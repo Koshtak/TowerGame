@@ -45,18 +45,18 @@ namespace GameCore
 
             if (data.Type == "Food")
             {
-                return new Food(data.Name, data.Weight, data.Value);
+                return new Food(data.Id, data.Name, data.Weight, data.Value);
             }
 
             else if (data.Type == "Weapon")
             {
-                Weapon w = new Weapon(data.Name);
+                Weapon w = new Weapon(data.Id, data.Name);
                 // Silahın moveseti
                 w.AddMove(new CombatMove("Normal Vuruş", data.Value));
                 return (Item)w;
             }
 
-            return new Item(data.Name, data.Weight);
+            return new Item(data.Id, data.Name, data.Weight);
         }
         public static Enemy CreateEnemy(string id)
         {

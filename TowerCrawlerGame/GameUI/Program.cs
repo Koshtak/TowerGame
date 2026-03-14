@@ -1,9 +1,10 @@
-﻿using System;
+﻿using GameCore;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using GameCore;
 
 namespace GameUI
 {
@@ -86,9 +87,10 @@ namespace GameUI
             Player hero = new Player("Marlo", 100, 10, 10);
 
             Map gameMap = SetupLevel(currentFloor, hero);
-            int targetFloor = isGenesisRun ? 3 : 99;
+            int targetFloor = isGenesisRun ? 3 : 99;//!!!!!!
+
             // Silah Ayarları
-            Weapon ironSword = new Weapon("Demir Kılıç");
+            Weapon ironSword = new Weapon("sword_iron", "Demir Kılıç");
             CombatMove quickSlash = new CombatMove("Hızlı Kesik", 15, (attacker, target) => { });
             CombatMove heavyHit = new CombatMove("Ağır Darbe", 35, (attacker, target) => { attacker.SpeedPenalty += 10; });
 
@@ -100,7 +102,7 @@ namespace GameUI
             bool isGameRunning = true;
 
 
-            // OYUN DÖNGÜSÜ
+            // GAME LOOP
             while (isGameRunning)
 
             {
@@ -127,7 +129,7 @@ namespace GameUI
                     case ConsoleKey.Escape: isGameRunning = false; break;
                 }
 
-
+                //moving to next tile and combat
                 if (dx != 0 || dy != 0)
                 {
                     int targetX = hero.X + dx;
@@ -181,6 +183,45 @@ namespace GameUI
 
 
                         }
+                        
+                        else if (targetTile.Occupant is Echo echo)
+                        {
+                            Console.Clear();
+                            Console.WriteLine($"=== {echo.Data.EchoCharName}'in Echosu");
+                            Console.WriteLine($"İçinde {echo.Data.DroppedItems.Count} adet eşya var.");
+                            Console.WriteLine("Almak istiyor musun? (E: Evet / H: Hayır)");
+
+                            if (Console.ReadKey().Key == ConsoleKey.E)
+                            {
+                                // Eşyaları al
+                                foreach (var itemData in echo.Data.DroppedItems)
+                                {
+                                    // factoryle idden item üretir
+                                    Item restoredItem = ObjectFactory.CreateItem(itemData.Id);
+                                    if (restoredItem != null)
+                                    {
+                                        if (hero.AddToInventory(restoredItem))
+                                            Console.WriteLine($"+ {restoredItem.Name} alındı.");
+                                        else
+                                            Console.WriteLine($"! Çanta dolu. {restoredItem.Name} alınamadı.");
+                                    }
+                                }
+
+                                gameMap.Grid[targetX, targetY].Occupant = null;
+
+                                // Kayıt dosyasından da sil
+                                SaveManager.CurrentState.Echoes.Remove(echo.Data);
+                                SaveManager.SaveGame(); 
+
+                                Console.WriteLine("\nEchoyu aldın");
+                                Console.ReadKey();
+                            }
+                            else
+                            {
+                                logMessage = "Echoyu almadın.";
+                            }
+                        }
+
                         else if (targetTile.IsWall)
                         {
                             logMessage = "Duvar.";
@@ -197,6 +238,33 @@ namespace GameUI
 
                 if (hero.IsDead)
                 {
+                    if (isGenesisRun)
+                    {
+                        return false;
+                    }
+                    Console.WriteLine("Öldün");
+
+                    EchoData newEcho = new EchoData()
+                    {
+                        EchoCharName = hero.Name,
+                        FloorLevel = currentFloor,
+                        X = hero.X,
+                        Y = hero.Y,
+                        DroppedItems = new List<ItemData>()
+                    };
+
+                    foreach (var item in hero.Inventory) 
+                    {
+                        newEcho.DroppedItems.Add(new ItemData()
+                        {
+                            Id = item.Id,
+                            Name = item.Name,
+                        });                       
+
+                    };
+                    Console.WriteLine("Echo Kuleye Salındı.");
+                    Console.ReadKey();
+
                     return false;
                 }
 
@@ -222,8 +290,8 @@ namespace GameUI
                     }
                     else if (choice == ConsoleKey.D2)
                     {
+                        //previous floor.
                         currentFloor--;
-                        //eski katı yükle.
                     }
                     else if (choice == ConsoleKey.D3)
                     {
@@ -259,15 +327,15 @@ namespace GameUI
                     enemyId = "orc_warrior";
                 }
 
-                // Düşmanı yarat
+                // create enemy
                 Enemy enemy = ObjectFactory.CreateEnemy(enemyId);
 
-                // --- HATA TESPİT BLOĞU ---
+                //error check
                 if (enemy == null)
                 {
-                    // EĞER BU YAZIYI GÖRÜYORSAN: JSON dosyasındaki "id" ile buradaki "enemyId" tutmuyor demektir.
+                    // "id" in json and "enemyId" in here did't match.
                     Console.BackgroundColor = ConsoleColor.Red;
-                    Console.WriteLine($"!!! HATA: '{enemyId}' ID'li düşman üretilemedi! JSON dosyasını kontrol et.");
+                    Console.WriteLine($"!!! HATA: '{enemyId}' ID'li düşman yok! JSON dosyasına bak.");
                     Console.ResetColor();
                 }
                 else
@@ -287,6 +355,17 @@ namespace GameUI
                     }
                 }
             }
+
+            //place echo on the map
+            foreach (var EchoData in SaveManager.CurrentState.Echoes) 
+            {
+                if (EchoData.FloorLevel == floorLevel)
+                {
+                    Echo echoEntity = new Echo(EchoData);
+                    newMap.PlaceEntity(echoEntity, EchoData.X, EchoData.Y);
+                }
+            }
+
             return newMap;
         }
         static void DrawMap(Map map, Player hero)
@@ -316,6 +395,11 @@ namespace GameUI
                     {
                         Console.ForegroundColor = ConsoleColor.Cyan;
                         Console.Write("H");
+                    }
+                    else if (t.Occupant is Echo)
+                    {
+                        Console.ForegroundColor = ConsoleColor.DarkMagenta;
+                        Console.Write("† ");
                     }
                     else
                     {

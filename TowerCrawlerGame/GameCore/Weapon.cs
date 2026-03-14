@@ -10,7 +10,7 @@ namespace GameCore
     {
         string Name { get; set; }
         public List<CombatMove> Moves { get; set; }
-        public Weapon(string name, int weight = 3) : base(name, weight)
+        public Weapon(string id, string name, int weight = 3) : base(id, name, weight)
         {
             Name = name;
             Moves = new List<CombatMove>();
